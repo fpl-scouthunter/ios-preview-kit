@@ -35,6 +35,8 @@ jobs:
 
       - name: Build
         run: npm run build
+        env:
+          BASE_PATH: /ios-preview-kit/
 
       - name: Configure GitHub Pages
         uses: actions/configure-pages@v5
