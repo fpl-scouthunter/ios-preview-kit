@@ -13,9 +13,10 @@ type DeviceFrameProps = {
   model: DeviceModel;
   screenshot: string | null;
   showOverlay: boolean;
+  frameColor: string;
 };
 
-export const DeviceFrame = ({ platform, screenCategory, model, screenshot, showOverlay }: DeviceFrameProps) => {
+export const DeviceFrame = ({ platform, screenCategory, model, screenshot, showOverlay, frameColor }: DeviceFrameProps) => {
   const { w, h } = FRAME_SIZE[screenCategory];
   const isAndroid = platform === 'android';
   const isTablet = screenCategory === 'tablet';
@@ -25,10 +26,10 @@ export const DeviceFrame = ({ platform, screenCategory, model, screenshot, showO
 
   return (
       <div
-          className={`relative mx-auto bg-neutral-900 shadow-2xl overflow-hidden border-neutral-800 transition-all duration-700 ${
+          className={`relative mx-auto shadow-2xl overflow-hidden transition-all duration-700 ${
               isTablet ? 'rounded-[1.6rem]' : isAndroid ? 'rounded-[2.6rem]' : 'rounded-[3.2rem]'
           } ${thinBezel ? 'border-[3px]' : 'border-8'}`}
-          style={{ width: w, height: h }}
+          style={{ width: w, height: h, backgroundColor: frameColor, borderColor: frameColor }}
       >
         {/* Camera cutout */}
         {showOverlay && (

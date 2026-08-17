@@ -25,6 +25,7 @@ import type { AppProject, DeviceModel, Platform, PreviewState, ScreenCategory } 
 import { CANVAS_SIZE, FRAME_SIZE, getDeviceOptions, isThinBezelModel } from './deviceConfig';
 import { GRADIENT_PRESETS, cloneScreenAsNew, createDefaultApp } from './templates';
 import {
+  DEFAULT_FRAME_COLOR,
   DEFAULT_POPOUT_BORDER_COLOR,
   DEFAULT_POPOUT_BORDER_OPACITY,
   DEFAULT_POPOUT_BORDER_RADIUS,
@@ -34,6 +35,7 @@ import {
   DEFAULT_POPOUT_SHADOW_BLUR,
   DEFAULT_POPOUT_SHADOW_COLOR,
   DEFAULT_POPOUT_SHADOW_OPACITY,
+  FRAME_COLOR_PRESETS,
   MAX_POPOUT_BORDER_RADIUS,
   MAX_POPOUT_BORDER_WIDTH,
   MAX_POPOUT_SCALE,
@@ -244,6 +246,7 @@ export default function App() {
   const popoutShadowBlur = activeScreen.popoutShadowBlur ?? DEFAULT_POPOUT_SHADOW_BLUR;
   const popoutShadowColor = activeScreen.popoutShadowColor ?? DEFAULT_POPOUT_SHADOW_COLOR;
   const popoutShadowOpacity = activeScreen.popoutShadowOpacity ?? DEFAULT_POPOUT_SHADOW_OPACITY;
+  const frameColor = activeScreen.frameColor ?? DEFAULT_FRAME_COLOR;
 
   return (
       <div className="flex flex-col h-screen bg-[#0a0a0a] text-white font-sans overflow-hidden border-t border-neutral-800">
@@ -393,10 +396,10 @@ export default function App() {
                     {activeScreen.layout === 'list-popout' ? (
                         <div className="relative">
                           <div
-                              className={`relative mx-auto bg-neutral-900 shadow-2xl overflow-hidden border-neutral-800 transition-all duration-700 ${
+                              className={`relative mx-auto shadow-2xl overflow-hidden transition-all duration-700 ${
                                   activeApp.screenCategory === 'tablet' ? 'rounded-[1.6rem]' : activeApp.platform === 'android' ? 'rounded-[2.6rem]' : 'rounded-[3.2rem]'
                               } ${popoutThinBezel ? 'border-[3px]' : 'border-8'}`}
-                              style={{ width: frameSize.w, height: frameSize.h }}
+                              style={{ width: frameSize.w, height: frameSize.h, backgroundColor: frameColor, borderColor: frameColor }}
                           >
                             {activeScreen.showDeviceOverlay && (
                                 activeApp.platform === 'android' ? (
@@ -463,6 +466,7 @@ export default function App() {
                             model={activeScreen.deviceModel}
                             screenshot={activeScreen.screenshot}
                             showOverlay={activeScreen.showDeviceOverlay}
+                            frameColor={frameColor}
                         />
                     )}
                   </div>
@@ -717,6 +721,27 @@ export default function App() {
                           <option key={opt.value} value={opt.value}>{opt.label}</option>
                       ))}
                     </select>
+                  </div>
+
+                  <div className="flex flex-col gap-2">
+                    <label className="text-[10px] font-bold uppercase tracking-wider text-neutral-500">Frame Color</label>
+                    <div className="flex items-center gap-2">
+                      {FRAME_COLOR_PRESETS.map((preset) => (
+                          <button
+                              key={preset.value}
+                              onClick={() => updateActiveScreen({ frameColor: preset.value })}
+                              title={preset.label}
+                              style={{ backgroundColor: preset.value }}
+                              className={`w-8 h-8 rounded-full border border-neutral-700 shadow-sm transition-all ${frameColor === preset.value ? 'ring-2 ring-indigo-500 ring-offset-2 ring-offset-black' : ''}`}
+                          />
+                      ))}
+                      <input
+                          type="color"
+                          value={frameColor}
+                          onChange={(e) => updateActiveScreen({ frameColor: e.target.value })}
+                          className="w-8 h-8 rounded-full cursor-pointer bg-transparent border-0"
+                      />
+                    </div>
                   </div>
 
                   <div className="flex flex-col gap-2">

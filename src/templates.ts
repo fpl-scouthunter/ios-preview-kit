@@ -5,6 +5,7 @@
 
 import { getDefaultDeviceModel } from './deviceConfig';
 import {
+  DEFAULT_FRAME_COLOR,
   DEFAULT_POPOUT_BORDER_COLOR,
   DEFAULT_POPOUT_BORDER_OPACITY,
   DEFAULT_POPOUT_BORDER_RADIUS,
@@ -56,6 +57,7 @@ export const createDefaultScreen = (platform: Platform, screenCategory: ScreenCa
     gradient,
     textColor: '#ffffff',
     deviceModel: getDefaultDeviceModel(platform, screenCategory),
+    frameColor: DEFAULT_FRAME_COLOR,
     layout: 'top-text',
     showDeviceOverlay: true,
   };

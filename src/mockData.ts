@@ -35,3 +35,9 @@ export const DEFAULT_POPOUT_SHADOW_BLUR = 50;
 export const MAX_POPOUT_SHADOW_BLUR = 120;
 export const DEFAULT_POPOUT_SHADOW_COLOR = '#000000';
 export const DEFAULT_POPOUT_SHADOW_OPACITY = 45;
+
+export const DEFAULT_FRAME_COLOR = '#171717';
+export const FRAME_COLOR_PRESETS = [
+  { label: 'Black', value: '#171717' },
+  { label: 'White', value: '#f5f5f5' },
+];

@@ -48,6 +48,7 @@ export type PreviewState = {
   gradient: Gradient | null;
   textColor: string;
   deviceModel: DeviceModel;
+  frameColor: string;
   layout: Layout;
   showDeviceOverlay: boolean;
 };
