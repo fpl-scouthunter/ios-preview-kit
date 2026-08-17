@@ -432,8 +432,9 @@ export default function App() {
                   )}
 
                   {activeScreen.layout === 'list-popout' && (
-                      <div className="flex flex-col gap-8 text-center items-center mb-8">
+                      <div className="flex flex-col gap-4 text-center items-center mb-8">
                         <h2 className="font-extrabold leading-tight tracking-tight px-4" style={{ fontFamily, fontSize: titleFontSize }}>{activeScreen.title}</h2>
+                        <p className="opacity-80 leading-relaxed max-w-[80%]" style={{ fontFamily, fontSize: subtitleFontSize }}>{activeScreen.subtitle}</p>
                       </div>
                   )}
 
