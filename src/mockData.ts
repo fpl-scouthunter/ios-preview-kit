@@ -41,3 +41,23 @@ export const FRAME_COLOR_PRESETS = [
   { label: 'Black', value: '#171717' },
   { label: 'White', value: '#f5f5f5' },
 ];
+
+export const FONT_OPTIONS = [
+  { label: 'Inter', value: '"Inter", ui-sans-serif, system-ui, sans-serif' },
+  { label: 'Poppins', value: '"Poppins", ui-sans-serif, system-ui, sans-serif' },
+  { label: 'Montserrat', value: '"Montserrat", ui-sans-serif, system-ui, sans-serif' },
+  { label: 'Space Grotesk', value: '"Space Grotesk", ui-sans-serif, system-ui, sans-serif' },
+  { label: 'DM Sans', value: '"DM Sans", ui-sans-serif, system-ui, sans-serif' },
+  { label: 'Sora', value: '"Sora", ui-sans-serif, system-ui, sans-serif' },
+  { label: 'Playfair Display', value: '"Playfair Display", ui-serif, Georgia, serif' },
+  { label: 'Roboto Slab', value: '"Roboto Slab", ui-serif, Georgia, serif' },
+];
+export const DEFAULT_FONT_FAMILY = FONT_OPTIONS[0].value;
+
+export const DEFAULT_TITLE_FONT_SIZE = 36;
+export const MIN_TITLE_FONT_SIZE = 16;
+export const MAX_TITLE_FONT_SIZE = 64;
+
+export const DEFAULT_SUBTITLE_FONT_SIZE = 18;
+export const MIN_SUBTITLE_FONT_SIZE = 10;
+export const MAX_SUBTITLE_FONT_SIZE = 32;

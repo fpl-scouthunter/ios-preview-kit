@@ -49,6 +49,9 @@ export type PreviewState = {
   textColor: string;
   deviceModel: DeviceModel;
   frameColor: string;
+  fontFamily: string;
+  titleFontSize: number;
+  subtitleFontSize: number;
   layout: Layout;
   showDeviceOverlay: boolean;
 };

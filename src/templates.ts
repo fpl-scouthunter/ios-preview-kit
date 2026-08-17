@@ -5,6 +5,7 @@
 
 import { getDefaultDeviceModel } from './deviceConfig';
 import {
+  DEFAULT_FONT_FAMILY,
   DEFAULT_FRAME_COLOR,
   DEFAULT_POPOUT_BORDER_COLOR,
   DEFAULT_POPOUT_BORDER_OPACITY,
@@ -15,6 +16,8 @@ import {
   DEFAULT_POPOUT_SHADOW_BLUR,
   DEFAULT_POPOUT_SHADOW_COLOR,
   DEFAULT_POPOUT_SHADOW_OPACITY,
+  DEFAULT_SUBTITLE_FONT_SIZE,
+  DEFAULT_TITLE_FONT_SIZE,
 } from './mockData';
 import type { AppProject, Platform, PreviewState, ScreenCategory } from './types';
 
@@ -58,6 +61,9 @@ export const createDefaultScreen = (platform: Platform, screenCategory: ScreenCa
     textColor: '#ffffff',
     deviceModel: getDefaultDeviceModel(platform, screenCategory),
     frameColor: DEFAULT_FRAME_COLOR,
+    fontFamily: DEFAULT_FONT_FAMILY,
+    titleFontSize: DEFAULT_TITLE_FONT_SIZE,
+    subtitleFontSize: DEFAULT_SUBTITLE_FONT_SIZE,
     layout: 'top-text',
     showDeviceOverlay: true,
   };

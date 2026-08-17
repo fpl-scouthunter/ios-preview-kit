@@ -25,6 +25,7 @@ import type { AppProject, DeviceModel, Platform, PreviewState, ScreenCategory } 
 import { CANVAS_SIZE, FRAME_SIZE, getDeviceOptions, isThinBezelModel } from './deviceConfig';
 import { GRADIENT_PRESETS, cloneScreenAsNew, createDefaultApp } from './templates';
 import {
+  DEFAULT_FONT_FAMILY,
   DEFAULT_FRAME_COLOR,
   DEFAULT_POPOUT_BORDER_COLOR,
   DEFAULT_POPOUT_BORDER_OPACITY,
@@ -35,12 +36,19 @@ import {
   DEFAULT_POPOUT_SHADOW_BLUR,
   DEFAULT_POPOUT_SHADOW_COLOR,
   DEFAULT_POPOUT_SHADOW_OPACITY,
+  DEFAULT_SUBTITLE_FONT_SIZE,
+  DEFAULT_TITLE_FONT_SIZE,
+  FONT_OPTIONS,
   FRAME_COLOR_PRESETS,
   MAX_POPOUT_BORDER_RADIUS,
   MAX_POPOUT_BORDER_WIDTH,
   MAX_POPOUT_SCALE,
   MAX_POPOUT_SHADOW_BLUR,
+  MAX_SUBTITLE_FONT_SIZE,
+  MAX_TITLE_FONT_SIZE,
   MIN_POPOUT_SCALE,
+  MIN_SUBTITLE_FONT_SIZE,
+  MIN_TITLE_FONT_SIZE,
   STATUS_LIST_ITEMS,
 } from './mockData';
 import { ImportError, exportAppToFile, loadPersistedState, parseImportedApp, savePersistedState } from './storage';
@@ -70,6 +78,7 @@ export default function App() {
   const [isNewAppModalOpen, setIsNewAppModalOpen] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
   const [exportProgress, setExportProgress] = useState(0);
+  const [settingsTab, setSettingsTab] = useState<'general' | 'text' | 'screenshots'>('general');
   const previewRef = useRef<HTMLDivElement>(null);
 
   const activeApp = apps.find(a => a.id === activeAppId) || apps[0];
@@ -247,6 +256,9 @@ export default function App() {
   const popoutShadowColor = activeScreen.popoutShadowColor ?? DEFAULT_POPOUT_SHADOW_COLOR;
   const popoutShadowOpacity = activeScreen.popoutShadowOpacity ?? DEFAULT_POPOUT_SHADOW_OPACITY;
   const frameColor = activeScreen.frameColor ?? DEFAULT_FRAME_COLOR;
+  const fontFamily = activeScreen.fontFamily ?? DEFAULT_FONT_FAMILY;
+  const titleFontSize = activeScreen.titleFontSize ?? DEFAULT_TITLE_FONT_SIZE;
+  const subtitleFontSize = activeScreen.subtitleFontSize ?? DEFAULT_SUBTITLE_FONT_SIZE;
 
   return (
       <div className="flex flex-col h-screen bg-[#0a0a0a] text-white font-sans overflow-hidden border-t border-neutral-800">
@@ -381,14 +393,14 @@ export default function App() {
                 <div className="flex-1 flex flex-col p-8 pt-16">
                   {activeScreen.layout === 'top-text' && (
                       <div className="flex flex-col gap-4 text-center items-center mb-12">
-                        <h2 className="text-4xl font-extrabold leading-tight tracking-tight">{activeScreen.title}</h2>
-                        <p className="opacity-80 text-lg leading-relaxed max-w-[80%]">{activeScreen.subtitle}</p>
+                        <h2 className="font-extrabold leading-tight tracking-tight" style={{ fontFamily, fontSize: titleFontSize }}>{activeScreen.title}</h2>
+                        <p className="opacity-80 leading-relaxed max-w-[80%]" style={{ fontFamily, fontSize: subtitleFontSize }}>{activeScreen.subtitle}</p>
                       </div>
                   )}
 
                   {activeScreen.layout === 'list-popout' && (
                       <div className="flex flex-col gap-8 text-center items-center mb-8">
-                        <h2 className="text-4xl font-extrabold leading-tight tracking-tight px-4">{activeScreen.title}</h2>
+                        <h2 className="font-extrabold leading-tight tracking-tight px-4" style={{ fontFamily, fontSize: titleFontSize }}>{activeScreen.title}</h2>
                       </div>
                   )}
 
@@ -473,8 +485,8 @@ export default function App() {
 
                   {activeScreen.layout === 'bottom-text' && (
                       <div className="flex flex-col gap-4 text-center items-center mt-8">
-                        <h2 className="text-4xl font-extrabold leading-tight tracking-tight">{activeScreen.title}</h2>
-                        <p className="opacity-80 text-lg leading-relaxed max-w-[80%]">{activeScreen.subtitle}</p>
+                        <h2 className="font-extrabold leading-tight tracking-tight" style={{ fontFamily, fontSize: titleFontSize }}>{activeScreen.title}</h2>
+                        <p className="opacity-80 leading-relaxed max-w-[80%]" style={{ fontFamily, fontSize: subtitleFontSize }}>{activeScreen.subtitle}</p>
                       </div>
                   )}
                 </div>
@@ -491,35 +503,29 @@ export default function App() {
               </h1>
             </div>
 
-            <div className="flex-1 overflow-y-auto p-6 flex flex-col gap-8">
-              {/* Content Section */}
-              <section>
-                <div className="flex items-center gap-2 mb-4">
-                  <Type size={16} className="text-indigo-400/60" />
-                  <h3 className="text-xs font-bold uppercase tracking-widest text-neutral-500">Typography</h3>
-                </div>
-                <div className="flex flex-col gap-3">
-                  <div className="flex flex-col gap-1.5">
-                    <label className="text-xs font-medium text-neutral-400 px-1">Headline</label>
-                    <textarea
-                        value={activeScreen.title}
-                        onChange={(e) => updateActiveScreen({ title: e.target.value })}
-                        className="w-full bg-[#141414] border border-neutral-800 rounded-xl p-3 text-sm text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 min-h-[80px] resize-none font-semibold transition-all"
-                        placeholder="Enter main headline..."
-                    />
-                  </div>
-                  <div className="flex flex-col gap-1.5">
-                    <label className="text-xs font-medium text-neutral-400 px-1">Description</label>
-                    <textarea
-                        value={activeScreen.subtitle}
-                        onChange={(e) => updateActiveScreen({ subtitle: e.target.value })}
-                        className="w-full bg-[#141414] border border-neutral-800 rounded-xl p-3 text-sm text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 min-h-[60px] resize-none transition-all"
-                        placeholder="Enter supporting text..."
-                    />
-                  </div>
-                </div>
-              </section>
+            <div className="flex border-b border-neutral-800 px-3 pt-3 gap-1">
+              {([
+                { id: 'general', label: 'General' },
+                { id: 'text', label: 'Text' },
+                { id: 'screenshots', label: 'Screenshot' },
+              ] as const).map((tab) => (
+                  <button
+                      key={tab.id}
+                      onClick={() => setSettingsTab(tab.id)}
+                      className={`flex-1 px-3 py-2 text-[11px] font-bold uppercase tracking-wider rounded-t-lg transition-all border-b-2 ${
+                          settingsTab === tab.id
+                              ? 'text-indigo-400 border-indigo-500'
+                              : 'text-neutral-500 border-transparent hover:text-neutral-300'
+                      }`}
+                  >
+                    {tab.label}
+                  </button>
+              ))}
+            </div>
 
+            <div className="flex-1 overflow-y-auto p-6 flex flex-col gap-8">
+              {settingsTab === 'screenshots' && (
+              <>
               {/* Screenshot Section */}
               <section>
                 <div className="flex items-center gap-2 mb-4">
@@ -709,7 +715,62 @@ export default function App() {
                         </div>
                       </div>
                   )}
+                </div>
+              </section>
+              </>
+              )}
 
+              {settingsTab === 'general' && (
+              <>
+              {/* Layout Section */}
+              <section>
+                <div className="flex items-center gap-2 mb-4">
+                  <Layout size={16} className="text-indigo-400/60" />
+                  <h3 className="text-xs font-bold uppercase tracking-widest text-neutral-500">Layout</h3>
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                      onClick={() => updateActiveScreen({ layout: 'top-text' })}
+                      className={`p-3 rounded-xl border flex flex-col gap-2 items-center transition-all ${activeScreen.layout === 'top-text' ? 'border-indigo-500 bg-indigo-500/10' : 'border-neutral-800 bg-transparent opacity-60'}`}
+                  >
+                    <div className="w-8 h-10 border border-neutral-800 rounded-[2px] relative flex flex-col gap-1 p-1">
+                      <div className="w-full h-1 bg-neutral-700 rounded-full" />
+                      <div className="flex-1 w-full bg-neutral-800 rounded-[1px]" />
+                    </div>
+                    <span className="text-[10px] font-bold uppercase tracking-tighter">Text Top</span>
+                  </button>
+                  <button
+                      onClick={() => updateActiveScreen({ layout: 'bottom-text' })}
+                      className={`p-3 rounded-xl border flex flex-col gap-2 items-center transition-all ${activeScreen.layout === 'bottom-text' ? 'border-indigo-500 bg-indigo-500/10' : 'border-neutral-800 bg-transparent opacity-60'}`}
+                  >
+                    <div className="w-8 h-10 border border-neutral-800 rounded-[2px] relative flex flex-col gap-1 p-1">
+                      <div className="flex-1 w-full bg-neutral-800 rounded-[1px]" />
+                      <div className="w-full h-1 bg-neutral-700 rounded-full" />
+                    </div>
+                    <span className="text-[10px] font-bold uppercase tracking-tighter">Text Bottom</span>
+                  </button>
+                  <button
+                      onClick={() => updateActiveScreen({ layout: 'list-popout' })}
+                      className={`p-3 rounded-xl border flex flex-col gap-2 items-center transition-all ${activeScreen.layout === 'list-popout' ? 'border-indigo-500 bg-indigo-500/10' : 'border-neutral-800 bg-transparent opacity-60'}`}
+                  >
+                    <div className="w-8 h-10 border border-neutral-800 rounded-[2px] relative flex flex-col gap-1 p-1">
+                      <div className="w-full h-1 bg-neutral-700 rounded-full mb-1" />
+                      <div className="flex-1 w-full bg-neutral-800 rounded-[1px] relative">
+                        <div className="absolute -left-1 right-1 top-1/2 h-1 bg-indigo-500 shadow-sm" />
+                      </div>
+                    </div>
+                    <span className="text-[10px] font-bold uppercase tracking-tighter">List Popout</span>
+                  </button>
+                </div>
+              </section>
+
+              {/* Device Section */}
+              <section>
+                <div className="flex items-center gap-2 mb-4">
+                  <Monitor size={16} className="text-indigo-400/60" />
+                  <h3 className="text-xs font-bold uppercase tracking-widest text-neutral-500">Device</h3>
+                </div>
+                <div className="flex flex-col gap-5">
                   <div className="flex flex-col gap-2">
                     <label className="text-[10px] font-bold uppercase tracking-wider text-neutral-500">Device Model</label>
                     <select
@@ -743,64 +804,30 @@ export default function App() {
                       />
                     </div>
                   </div>
-
-                  <div className="flex flex-col gap-2">
-                    <label className="text-[10px] font-bold uppercase tracking-wider text-neutral-500">Overlay Controls</label>
-                    <button
-                        onClick={() => updateActiveScreen({ showDeviceOverlay: !activeScreen.showDeviceOverlay })}
-                        className={`w-full p-2.5 rounded-xl border text-[11px] font-bold transition-all flex items-center justify-between ${
-                            activeScreen.showDeviceOverlay ? 'bg-indigo-500/10 border-indigo-500 text-indigo-400' : 'bg-[#141414] border-neutral-800 text-neutral-500'
-                        }`}
-                    >
-                      Show Notch & Indicator
-                      <div className={`w-8 h-4 rounded-full relative transition-all ${activeScreen.showDeviceOverlay ? 'bg-indigo-500' : 'bg-neutral-800'}`}>
-                        <div className={`absolute top-1 w-2 h-2 bg-white rounded-full transition-all ${activeScreen.showDeviceOverlay ? 'left-5' : 'left-1'}`} />
-                      </div>
-                    </button>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-2">
-                    <button
-                        onClick={() => updateActiveScreen({ layout: 'top-text' })}
-                        className={`p-3 rounded-xl border flex flex-col gap-2 items-center transition-all ${activeScreen.layout === 'top-text' ? 'border-indigo-500 bg-indigo-500/10' : 'border-neutral-800 bg-transparent opacity-60'}`}
-                    >
-                      <div className="w-8 h-10 border border-neutral-800 rounded-[2px] relative flex flex-col gap-1 p-1">
-                        <div className="w-full h-1 bg-neutral-700 rounded-full" />
-                        <div className="flex-1 w-full bg-neutral-800 rounded-[1px]" />
-                      </div>
-                      <span className="text-[10px] font-bold uppercase tracking-tighter">Text Top</span>
-                    </button>
-                    <button
-                        onClick={() => updateActiveScreen({ layout: 'bottom-text' })}
-                        className={`p-3 rounded-xl border flex flex-col gap-2 items-center transition-all ${activeScreen.layout === 'bottom-text' ? 'border-indigo-500 bg-indigo-500/10' : 'border-neutral-800 bg-transparent opacity-60'}`}
-                    >
-                      <div className="w-8 h-10 border border-neutral-800 rounded-[2px] relative flex flex-col gap-1 p-1">
-                        <div className="flex-1 w-full bg-neutral-800 rounded-[1px]" />
-                        <div className="w-full h-1 bg-neutral-700 rounded-full" />
-                      </div>
-                      <span className="text-[10px] font-bold uppercase tracking-tighter">Text Bottom</span>
-                    </button>
-                    <button
-                        onClick={() => updateActiveScreen({ layout: 'list-popout' })}
-                        className={`p-3 rounded-xl border flex flex-col gap-2 items-center transition-all ${activeScreen.layout === 'list-popout' ? 'border-indigo-500 bg-indigo-500/10' : 'border-neutral-800 bg-transparent opacity-60'}`}
-                    >
-                      <div className="w-8 h-10 border border-neutral-800 rounded-[2px] relative flex flex-col gap-1 p-1">
-                        <div className="w-full h-1 bg-neutral-700 rounded-full mb-1" />
-                        <div className="flex-1 w-full bg-neutral-800 rounded-[1px] relative">
-                          <div className="absolute -left-1 right-1 top-1/2 h-1 bg-indigo-500 shadow-sm" />
-                        </div>
-                      </div>
-                      <span className="text-[10px] font-bold uppercase tracking-tighter">List Popout</span>
-                    </button>
-                  </div>
                 </div>
               </section>
+
+              {/* Overlay Section */}
+              <div className="flex flex-col gap-2">
+                <label className="text-[10px] font-bold uppercase tracking-wider text-neutral-500">Overlay Controls</label>
+                <button
+                    onClick={() => updateActiveScreen({ showDeviceOverlay: !activeScreen.showDeviceOverlay })}
+                    className={`w-full p-2.5 rounded-xl border text-[11px] font-bold transition-all flex items-center justify-between ${
+                        activeScreen.showDeviceOverlay ? 'bg-indigo-500/10 border-indigo-500 text-indigo-400' : 'bg-[#141414] border-neutral-800 text-neutral-500'
+                    }`}
+                >
+                  Show Notch & Indicator
+                  <div className={`w-8 h-4 rounded-full relative transition-all ${activeScreen.showDeviceOverlay ? 'bg-indigo-500' : 'bg-neutral-800'}`}>
+                    <div className={`absolute top-1 w-2 h-2 bg-white rounded-full transition-all ${activeScreen.showDeviceOverlay ? 'left-5' : 'left-1'}`} />
+                  </div>
+                </button>
+              </div>
 
               {/* Style Section */}
               <section>
                 <div className="flex items-center gap-2 mb-4">
                   <Palette size={16} className="text-indigo-400/60" />
-                  <h3 className="text-xs font-bold uppercase tracking-widest text-neutral-500">Appearance</h3>
+                  <h3 className="text-xs font-bold uppercase tracking-widest text-neutral-500">Background</h3>
                 </div>
 
                 <div className="flex flex-col gap-5">
@@ -866,7 +893,49 @@ export default function App() {
                       />
                     </div>
                   </div>
+                </div>
+              </section>
+              </>
+              )}
 
+              {settingsTab === 'text' && (
+              <>
+              {/* Text Section */}
+              <section>
+                <div className="flex items-center gap-2 mb-4">
+                  <Type size={16} className="text-indigo-400/60" />
+                  <h3 className="text-xs font-bold uppercase tracking-widest text-neutral-500">Text</h3>
+                </div>
+                <div className="flex flex-col gap-3">
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-xs font-medium text-neutral-400 px-1">Headline</label>
+                    <textarea
+                        value={activeScreen.title}
+                        onChange={(e) => updateActiveScreen({ title: e.target.value })}
+                        className="w-full bg-[#141414] border border-neutral-800 rounded-xl p-3 text-sm text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 min-h-[80px] resize-none font-semibold transition-all"
+                        placeholder="Enter main headline..."
+                    />
+                  </div>
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-xs font-medium text-neutral-400 px-1">Description</label>
+                    <textarea
+                        value={activeScreen.subtitle}
+                        onChange={(e) => updateActiveScreen({ subtitle: e.target.value })}
+                        className="w-full bg-[#141414] border border-neutral-800 rounded-xl p-3 text-sm text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 min-h-[60px] resize-none transition-all"
+                        placeholder="Enter supporting text..."
+                    />
+                  </div>
+                </div>
+              </section>
+
+              {/* Style Section */}
+              <section>
+                <div className="flex items-center gap-2 mb-4">
+                  <Palette size={16} className="text-indigo-400/60" />
+                  <h3 className="text-xs font-bold uppercase tracking-widest text-neutral-500">Typography</h3>
+                </div>
+
+                <div className="flex flex-col gap-5">
                   <div className="flex flex-col gap-2">
                     <label className="text-[10px] font-bold uppercase tracking-wider text-neutral-500">Text Contrast</label>
                     <div className="flex gap-2">
@@ -880,8 +949,54 @@ export default function App() {
                       />
                     </div>
                   </div>
+
+                  <div className="flex flex-col gap-2">
+                    <label className="text-[10px] font-bold uppercase tracking-wider text-neutral-500">Font</label>
+                    <select
+                        value={fontFamily}
+                        onChange={(e) => updateActiveScreen({ fontFamily: e.target.value })}
+                        className="w-full bg-[#141414] border border-neutral-800 rounded-xl p-2.5 text-sm text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
+                        style={{ fontFamily }}
+                    >
+                      {FONT_OPTIONS.map((opt) => (
+                          <option key={opt.value} value={opt.value} style={{ fontFamily: opt.value }}>{opt.label}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="flex flex-col gap-1.5">
+                    <div className="flex justify-between items-center">
+                      <label className="text-[9px] font-bold text-neutral-400 uppercase">Title Size</label>
+                      <span className="text-[10px] font-mono text-indigo-400">{titleFontSize}px</span>
+                    </div>
+                    <input
+                        type="range"
+                        min={MIN_TITLE_FONT_SIZE}
+                        max={MAX_TITLE_FONT_SIZE}
+                        value={titleFontSize}
+                        onChange={(e) => updateActiveScreen({ titleFontSize: parseInt(e.target.value) })}
+                        className="w-full h-1.5 bg-neutral-800 rounded-lg appearance-none cursor-pointer accent-indigo-500"
+                    />
+                  </div>
+
+                  <div className="flex flex-col gap-1.5">
+                    <div className="flex justify-between items-center">
+                      <label className="text-[9px] font-bold text-neutral-400 uppercase">Subtitle Size</label>
+                      <span className="text-[10px] font-mono text-indigo-400">{subtitleFontSize}px</span>
+                    </div>
+                    <input
+                        type="range"
+                        min={MIN_SUBTITLE_FONT_SIZE}
+                        max={MAX_SUBTITLE_FONT_SIZE}
+                        value={subtitleFontSize}
+                        onChange={(e) => updateActiveScreen({ subtitleFontSize: parseInt(e.target.value) })}
+                        className="w-full h-1.5 bg-neutral-800 rounded-lg appearance-none cursor-pointer accent-indigo-500"
+                    />
+                  </div>
                 </div>
               </section>
+              </>
+              )}
             </div>
 
             <div className="p-6 border-t border-neutral-800">
