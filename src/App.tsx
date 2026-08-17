@@ -5,7 +5,7 @@
 
 import React, { useEffect, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { toJpeg } from 'html-to-image';
+import { toPng } from 'html-to-image';
 import JSZip from 'jszip';
 import { saveAs } from 'file-saver';
 import {
@@ -21,7 +21,7 @@ import {
   Sparkles,
   Loader2
 } from 'lucide-react';
-import type { AppProject, DeviceModel, Platform, PreviewState, ScreenCategory } from './types';
+import type { AppProject, DeviceModel, Gradient, Platform, PreviewState, ScreenCategory } from './types';
 import { CANVAS_SIZE, FRAME_SIZE, getDeviceOptions, isThinBezelModel } from './deviceConfig';
 import { GRADIENT_PRESETS, cloneScreenAsNew, createDefaultApp } from './templates';
 import {
@@ -57,10 +57,46 @@ import { MockStatusList } from './components/MockStatusList';
 import { AppSelectBar } from './components/AppSelectBar';
 import { NewAppModal } from './components/NewAppModal';
 import { ScreenshotAreaSelector } from './components/ScreenshotAreaSelector';
-import { getImageAspectRatio, hexToRgba } from './imageUtils';
+import { flattenPngToRoundedJpeg, getImageAspectRatio, hexToRgba } from './imageUtils';
 
 const appSlug = (name: string) =>
     name.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') || 'app';
+
+const CARD_CORNER_RADIUS = 32;
+const EXPORT_PIXEL_RATIO = 3;
+
+/**
+ * Captures `node` as a flattened JPEG with clean rounded corners.
+ * We capture a squared-off clone (no border-radius/box-shadow) rather than the live node directly,
+ * because html-to-image's rasterized rounded-corner clip leaves antialiased edge pixels blended
+ * against an implicit black backdrop — visible as a dark fringe once composited onto a real
+ * background. Rounding is instead applied ourselves in flattenPngToRoundedJpeg via canvas 2D clip.
+ */
+const captureScreenJpeg = async (
+    node: HTMLElement,
+    fill: { gradient: Gradient | null; bgColor: string }
+): Promise<string> => {
+  console.log('[DEBUG] captureScreenJpeg start');
+  const clone = node.cloneNode(true) as HTMLElement;
+  clone.style.borderRadius = '0';
+  clone.style.boxShadow = 'none';
+  const container = document.createElement('div');
+  container.style.cssText = 'position:fixed;top:-100000px;left:-100000px;pointer-events:none;';
+  container.appendChild(clone);
+  document.body.appendChild(container);
+  console.log('[DEBUG] clone appended', clone.getBoundingClientRect());
+  try {
+    const pngDataUrl = await toPng(clone, {
+      cacheBust: true,
+      pixelRatio: EXPORT_PIXEL_RATIO,
+      quality: 1,
+    });
+    console.log('[DEBUG] toPng resolved', pngDataUrl.length);
+    return await flattenPngToRoundedJpeg(pngDataUrl, fill, CARD_CORNER_RADIUS * EXPORT_PIXEL_RATIO);
+  } finally {
+    document.body.removeChild(container);
+  }
+};
 
 const initApps = (): { apps: AppProject[]; activeAppId: string } => {
   const persisted = loadPersistedState();
@@ -159,11 +195,9 @@ export default function App() {
   const handleDownload = async () => {
     if (previewRef.current === null) return;
     try {
-      const dataUrl = await toJpeg(previewRef.current, {
-        cacheBust: true,
-        pixelRatio: 3,
-        quality: 1,
-        backgroundColor: activeScreen.gradient?.from ?? activeScreen.bgColor,
+      const dataUrl = await captureScreenJpeg(previewRef.current, {
+        gradient: activeScreen.gradient,
+        bgColor: activeScreen.bgColor,
       });
       const link = document.createElement('a');
       link.download = `${appSlug(activeApp.name)}-preview-${activeScreen.id}.jpg`;
@@ -192,11 +226,9 @@ export default function App() {
         // Wait for React to switch state and render
         await sleep(500);
 
-        const dataUrl = await toJpeg(previewRef.current, {
-          cacheBust: true,
-          pixelRatio: 3,
-          quality: 1,
-          backgroundColor: screen.gradient?.from ?? screen.bgColor,
+        const dataUrl = await captureScreenJpeg(previewRef.current, {
+          gradient: screen.gradient,
+          bgColor: screen.bgColor,
         });
         const base64Data = dataUrl.split(',')[1];
         zip.file(`preview-${i + 1}-${screen.title.slice(0, 10)}.jpg`, base64Data, { base64: true });
@@ -379,10 +411,11 @@ export default function App() {
               <motion.div
                   ref={previewRef}
                   layoutId="preview-card"
-                  className="rounded-[32px] shadow-[0_40px_100px_rgba(0,0,0,0.6)] flex flex-col relative overflow-hidden"
+                  className="shadow-[0_40px_100px_rgba(0,0,0,0.6)] flex flex-col relative overflow-hidden"
                   style={{
                     width: canvasSize.w,
                     height: canvasSize.h,
+                    borderRadius: CARD_CORNER_RADIUS,
                     background: activeScreen.gradient
                         ? `linear-gradient(${activeScreen.gradient.angle}deg, ${activeScreen.gradient.from}, ${activeScreen.gradient.to})`
                         : activeScreen.bgColor,
